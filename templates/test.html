@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example Form</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 60%; /* Điều chỉnh độ rộng của form */
+            max-width: 600px; /* Đặt giới hạn chiều rộng tối đa */
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-size: 1.5em;
+            display: block;
+            margin: 15px 0;
+        }
+
+        select {
+            font-size: 1.2em;
+            padding: 12px;
+            margin-bottom: 30px;
+            width: 100%;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            font-size: 1.5em;
+            padding: 12px 24px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select and Submit Form</h1>
+    <form id="myForm">
+        <label for="category">Choose a category:</label>
+        <select id="category" name="category" onchange="fetchUsers()">
+            <option value="">Select category</option>
+            <!-- Dữ liệu category sẽ được tải vào đây -->
+        </select>
+
+        <label for="user">Choose a user:</label>
+        <select id="user" name="user">
+            <!-- Dữ liệu user sẽ được tải vào đây -->
+        </select>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" readonly>
+
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+
+    <script>
+        function fetchCategories() {
+            fetch('/fetchData')
+                .then(response => response.json())
+                .then(data => {
+                    const categorySelect = document.getElementById('category');
+                    categorySelect.innerHTML = '';
+
+                    Object.keys(data).forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
+                    });
+
+                    fetchUsers(); // Tải dữ liệu người dùng ban đầu
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        function fetchUsers() {
+            const category = document.getElementById('category').value;
+
+            if (category) {
+                fetch(`/fetchData?category=${category}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const userSelect = document.getElementById('user');
+                        userSelect.innerHTML = '';
+
+                        Object.keys(data).forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user;
+                            option.textContent = user;
+                            userSelect.appendChild(option);
+                        });
+
+                        fetchPassword(); // Tải password cho user đầu tiên
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+        }
+
+        function fetchPassword() {
+            const category = document.getElementById('category').value;
+            const user = document.getElementById('user').value;
+
+            if (category && user) {
+                fetch(`/fetchData?category=${category}&user=${user}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const passwordInput = document.getElementById('password');
+                        passwordInput.value = data[user]; // Lấy password
+
+                        // Nếu username cần thiết, có thể thêm vào dưới dạng readonly input
+                        const usernameInput = document.getElementById('username');
+                        usernameInput.value = user; // Lấy username
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+        }
+
+        function submitForm() {
+            const category = document.getElementById('category').value;
+            const user = document.getElementById('user').value;
+            const password = document.getElementById('password').value;
+
+            fetch('/submitData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category, user, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Data submitted successfully: ' + JSON.stringify(data));
+            })
+            .catch(error => console.error('Error submitting data:', error));
+        }
+
+        // Tải dữ liệu category ban đầu khi trang được tải
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCategories();
+        });
+    </script>
+</body>
+</html>

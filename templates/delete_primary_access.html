@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DELETE USER</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 60%; /* Điều chỉnh độ rộng của form */
+            max-width: 600px; /* Đặt giới hạn chiều rộng tối đa */
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-size: 1.5em;
+            display: block;
+            margin: 15px 0;
+        }
+
+        select {
+            font-size: 1.2em;
+            padding: 12px;
+            margin-bottom: 30px;
+            width: 100%;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            font-size: 1.5em;
+            padding: 12px 24px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <form id="myForm">
+        <label for="category">Choose Jurisdiction:</label>
+        <select id="category" name="category" onchange="fetchData()">
+            <option value=""> </option>
+            <option value="User">User</option>
+        </select>
+        <label for="dataList">Account List:</label>
+        <select id="dataList" name="dataList">
+        </select>
+        <button type="button" onclick="submitForm()">DELETE</button>
+    </form>
+
+    <script>
+        function fetchData() {
+    const category = document.getElementById('category').value;
+    fetch(`/fetchData?category=${category}`)
+        .then(response => response.json())
+        .then(data => {
+            const dataList = document.getElementById('dataList');
+            dataList.innerHTML = '';
+
+            // Trích xuất các giá trị bậc 2 từ dữ liệu JSON
+            const secondLevelValues = [];
+                Object.keys(data).forEach(subKey => {
+                    secondLevelValues.push(subKey);
+            });
+
+            // Hiển thị các giá trị bậc 2 trong dataList
+            secondLevelValues.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value; // Hiển thị giá trị bậc 2
+                dataList.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
+        function submitForm() {
+            const category = document.getElementById('category').value;
+            const dataList = document.getElementById('dataList').value;
+
+            fetch('/submitData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category, dataList })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('DELETE SUCCESSFULLY');
+                location.reload(); // Reload lại trang sau khi hiển thị thông báo
+            })
+            .catch(error => console.error('Error submitting data:', error));
+        }
+    </script>
+</body>
+</html>
