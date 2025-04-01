@@ -116,5 +116,8 @@ def submit_data1():
 
 
 #-------------------------Run Main---------------------
+# if __name__ == '__main__':
+#     app.run(host=f'{ipadd()}', debug=True, threaded=True)
+# python web server
 if __name__ == '__main__':
-    app.run(host=f'{ipadd()}', debug=True, threaded=True)
+    app.run(debug=True, port=os.getenv("PORT", default=5000))
