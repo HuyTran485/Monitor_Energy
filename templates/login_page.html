@@ -130,7 +130,6 @@ button {
 button:hover {
   background-color: rgb(255, 255,255, 0.5);
 }
-
 .register {
     font-size: 0.9rem;
     color: #fff;
@@ -158,12 +157,12 @@ button:hover {
             <div class= "inputbox">
                 <ion-icon name="mail-outline"></ion-icon>
                 <input type="text" name="account" value = "{{request.form.account }}" required>
-                <label >ROOM-ID</label>
+                <label >Account:</label>
             </div>
             <div class="inputbox">
                 <ion-icon name="lock-closed-outline"></ion-icon>
                 <input type="password" name="password" value = "{{request.form.password }}" required>
-                <label >Password</label>
+                <label >Password:</label>
             </div>
             <button>Log in</button>
         </form>

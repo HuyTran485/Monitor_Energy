@@ -167,9 +167,17 @@ select {
                 <input id="password" type="password" name="password" value = "{{request.form.password}}" required>
                 <label >PASSWORD</label>
             </div>
-            <select name="access_type" id="access_type">
-                <option value="User">User</option>
-            </select>
+<!-- Thêm ô chọn room_id -->
+<div style="margin-top: 20px;">
+    <label style="color:white;">Room ID:</label>
+    <select name="room_id" id="room_id">
+        <option value="Room_1">Room 1</option>
+        <option value="Room_2">Room 2</option>
+        <option value="Room_3">Room 3</option>
+        <!-- Bạn có thể thêm hoặc load động danh sách này từ server nếu cần -->
+    </select>
+</div>
+
             <button id="login-btn" style="margin-top:10%">SUBMIT</button>
         </form>
     </section>

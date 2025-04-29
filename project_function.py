@@ -7,7 +7,8 @@ import firebase_admin
 from firebase_admin import db, credentials
 from firebase_admin import db
 import datetime
-
+import random
+import time
 today = datetime.datetime.now()
 year= today.year
 cred = credentials.Certificate("json_key.json")
@@ -138,7 +139,7 @@ def generate_random_string(length):
 
 
 #Index to phonenumber data
-def insertData(userType, accountName, password):
+def insertUser(userType, accountName, password):
     now = datetime.now()
     date_string = now.strftime("%d-%m-%Y")
     time_string = now.strftime("%H-%M-%S")
@@ -162,18 +163,18 @@ from datetime import datetime
 import json
 
 #Index to phonenumber data
-def insertData(access_type, account, password):
+def insertUser(room_id, account, password):
     ref = db.reference('/')
     data = {
         "Password": f'{password}'
     }
-    ref.child(f'{access_type}').child(f'{account}').set(data)
+    ref.child('User').child(f'{room_id}').child(f'{account}').set(data)
 def showData(access_type):
     ref = db.reference(access_type)
     dataFirebase = ref.get()
     return dataFirebase
-def del_data(access_type, account):
-    ref = db.reference(f'{access_type}/{account}')
+def del_data(access_type,room_id, account):
+    ref = db.reference(f'{access_type}/{room_id}/{account}')
     ref.delete()
 def get_key_value(data):
     results={}
@@ -191,4 +192,45 @@ def check_pass(account, password, data):
             return True
     return False
 # print(check_pass('admin1235672', '935689', data))
-# insertData('Admin', 'admin', "012345")
+# insertUser('Admin', 'admin', "012345")
+
+def insertEnergyData(room_id,hour, energy):
+    ref = db.reference('/')
+    now = datetime.now()
+    year = now.strftime("%Y")
+    month = now.strftime("%m")
+    date = now.strftime("%d")
+    #hour = now.strftime("%H")
+    date_string = now.strftime("%d-%m-%Y")
+    data = {
+        "Energy": f'{energy}'
+    }
+    (ref.child(f'Data').child(f'{room_id}').child(f'{date_string}').child(f'{hour}').set(data))
+# for i in range(0,24):
+#     insertEnergyData("Room_1",i, random.randrange(0, 10,1))
+#     time.sleep(1)
+def index_data(room_id,date_index):
+    ref  = db.reference(f'/Data/{room_id}/{date_index}')
+    data = ref.get()
+    print(data)
+def get_key_value_1(data):
+    try:
+        account_password_list = {}
+        for room, users in data.items():
+            for account, info in users.items():
+                password = info.get('Password')
+                account_password_list[account] = password
+        return account_password_list
+    except:
+        return None
+def find_room_by_account(data, account):
+    for room_id, accounts in data.items():
+        if account in accounts:
+            return room_id
+    return None
+#index_data("Room_1","23-04-2025")
+#insertUser("Room_3","User7","123456")
+# print(showData("/User"))
+
+
+
