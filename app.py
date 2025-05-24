@@ -116,7 +116,6 @@ def get_data():
     data = request.get_json()
     room_id = data.get("room_id")
     date = data.get("date")
-
     if not room_id or not date:
         return jsonify({"error": "Thiếu room_id hoặc ngày."})
     try:
@@ -125,50 +124,37 @@ def get_data():
         print(room_id, selected_date)
     except ValueError:
         return jsonify({"error": "Định dạng ngày không hợp lệ."})
-
+    energy_data = get_energy_data(room_id, selected_date)
     # ======= 🔽 Giả lập dữ liệu bạn lấy từ Firebase hoặc cơ sở dữ liệu =======
     # Giả sử dữ liệu lưu dưới dạng: data_store[room_id][ngày][giờ] = { ... }
-    data_store = {
-        "Room_1": {
-            "18-04-2025": {
-                "08": {"energy": 0.5, "voltage": 220, "current": 1.5},
-                "09": {"energy": 0.7, "voltage": 221, "current": 1.7},
-                "10": {"energy": 0.6, "voltage": 219, "current": 1.6},
-            }
-        }
-    }
-    room_data = data_store.get(room_id, {})
-    daily_data = room_data.get(selected_date, {})
-
-    if not daily_data:
-        return jsonify({"error": "Không có dữ liệu cho ngày đã chọn."})
-
-    # Chuẩn bị dữ liệu để vẽ biểu đồ
     hours = []
     energy = []
     total_energy = 0
-    voltage_sum = 0
-    current_sum = 0
-
-    for hour, values in sorted(daily_data.items()):
-        hours.append(hour)
-        energy.append(values["energy"])
-        total_energy += values["energy"]
-        voltage_sum += values["voltage"]
-        current_sum += values["current"]
-
-    count = len(daily_data)
-    avg_voltage = round(voltage_sum / count, 2)
-    avg_current = round(current_sum / count, 2)
-    total_cost = round(total_energy * 3500, 2)  # Giá điện ví dụ: 3500 VND/kWh
+    try:
+        for i, item in enumerate(energy_data):
+            hour_label = f"{i:02d}:00"  # định dạng giờ như 00:00, 01:00...
+            e = float(item.get("Energy", 0))
+            hours.append(hour_label)
+            energy.append(e)
+            total_energy += e
+    except:
+        return jsonify({"error": "Không có dữ liệu trong ngày này",
+                        "hours": [],
+                        "energy": [],
+                        "total_energy": 0,
+                        "total_cost": 0,
+                        "voltage": 0,
+                        "current": 0
+                        })
+    total_cost = round(total_energy * 3500, 2)  # 3500 VND/kWh
 
     return jsonify({
         "hours": hours,
         "energy": energy,
         "total_energy": round(total_energy, 2),
         "total_cost": total_cost,
-        "voltage": avg_voltage,
-        "current": avg_current
+        "voltage": None,  # Không có dữ liệu điện áp
+        "current": None  # Không có dữ liệu dòng điện
     })
 
 

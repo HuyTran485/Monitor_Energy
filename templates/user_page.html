@@ -5,8 +5,8 @@
   <title>Biểu đồ điện năng</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    .stats { display: flex; gap: 20px; margin-bottom: 20px; }
+    body { font-family: Arial; padding: 20px; text-align:center}
+    .stats { display: flex; gap: 20px; margin-bottom: 20px; justify-content: space-between;}
     .stat-box { background: #f2f2f2; padding: 15px; border-radius: 10px; width: 200px; text-align: center; }
     canvas { max-width: 100%; }
     .controls { margin-bottom: 20px; }
@@ -42,10 +42,11 @@
       <p id="avgCurrent">-- A</p>
     </div>
   </div>
+  <p id="selectedDateDisplay"><strong>Ngày truy xuất:</strong> --</p>
 
   <canvas id="energyChart" height="100"></canvas>
 
-  <script>
+    <script>
     let chart;
 
     function loadChart() {
@@ -53,6 +54,7 @@
       const room_id = document.getElementById("roomId").value;
 
       if (!date) return alert("Vui lòng chọn ngày!");
+      document.getElementById("selectedDateDisplay").innerHTML = `<strong>Ngày truy xuất:</strong> ${date}`;
 
       fetch("/get_data", {
         method: "POST",
@@ -61,41 +63,62 @@
       })
       .then(res => res.json())
       .then(data => {
-        if (data.error) return alert(data.error);
 
-        // Cập nhật số liệu
-        document.getElementById("totalEnergy").innerText = data.total_energy + " kWh";
-        document.getElementById("totalCost").innerText = data.total_cost + " VND";
-        document.getElementById("avgVoltage").innerText = data.voltage + " V";
-        document.getElementById("avgCurrent").innerText = data.current + " A";
 
-        // Cập nhật biểu đồ
-        if (chart) chart.destroy();
-        chart = new Chart(document.getElementById('energyChart'), {
-          type: 'bar',
-          data: {
-            labels: data.hours,
-            datasets: [{
-              label: 'Điện năng (kWh)',
-              data: data.energy,
-              backgroundColor: 'rgba(54, 162, 235, 0.6)'
-            }]
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: { display: true, text: "kWh" }
-              },
-              x: {
-                title: { display: true, text: "Giờ" }
-              }
-            }
-          }
-        });
-      });
+  // 👉 Cập nhật ngày truy xuất
+  document.getElementById("selectedDateDisplay").innerHTML = `<strong>Ngày truy xuất:</strong> ${date}`;
+
+  // 👉 Cập nhật số liệu thống kê
+  document.getElementById("totalEnergy").innerText = data.total_energy + " kWh";
+  document.getElementById("totalCost").innerText = data.total_cost + " VND";
+  document.getElementById("avgVoltage").innerText = data.voltage + " V";
+  document.getElementById("avgCurrent").innerText = data.current + " A";
+  console.log(data.energy);
+  // 👉 Nếu không có dữ liệu, hiển thị thông báo và ẩn biểu đồ
+  if (data.energy.length === 0) {
+    if (chart) chart.destroy();
+    document.getElementById("energyChart").style.display = "none";
+    document.getElementById("selectedDateDisplay").innerHTML += `<br><em style="color:red;">Không có dữ liệu cho ngày này.</em>`;
+    return alert(data.error);;
+  }
+
+  // 👉 Nếu có dữ liệu, hiển thị biểu đồ
+  document.getElementById("energyChart").style.display = "block";
+
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('energyChart'), {
+    type: 'bar',
+    data: {
+      labels: data.hours,
+      datasets: [{
+        label: 'Điện năng (kWh)',
+        data: data.energy,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: "kWh" }
+        },
+        x: {
+          title: { display: true, text: "Giờ" }
+        }
+      }
     }
+  });
+});
+    }
+
+    // ✅ Gán ngày hôm nay khi trang tải và tự động fetch dữ liệu
+    window.onload = function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("date").value = today;
+      loadChart();
+    };
   </script>
+
 </body>
 </html>

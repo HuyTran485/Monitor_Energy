@@ -207,7 +207,7 @@ def insertEnergyData(room_id,hour, energy):
     }
     (ref.child(f'Data').child(f'{room_id}').child(f'{date_string}').child(f'{hour}').set(data))
 # for i in range(0,24):
-#     insertEnergyData("Room_1",i, random.randrange(0, 10,1))
+#     insertEnergyData("Room_1",i, random.randrange(0, 5,1))
 #     time.sleep(1)
 def index_data(room_id,date_index):
     ref  = db.reference(f'/Data/{room_id}/{date_index}')
@@ -228,6 +228,10 @@ def find_room_by_account(data, account):
         if account in accounts:
             return room_id
     return None
+def get_energy_data(room_id, date_index):
+    ref = db.reference(f'/Data/{room_id}/{date_index}')
+    data = ref.get()
+    return data
 #index_data("Room_1","23-04-2025")
 #insertUser("Room_3","User7","123456")
 # print(showData("/User"))
