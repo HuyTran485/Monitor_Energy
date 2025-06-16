@@ -18,7 +18,6 @@ def ipadd():
     return IPAddr
 @app.route('/', methods=['POST', 'GET'])
 def check_out():
-    global random_id
     admin_list = get_key_value(showData("/Admin"))
     user_data = showData("/User")
     user_list = get_key_value_1(user_data)
@@ -27,40 +26,50 @@ def check_out():
         account = request.form['account']
         password = request.form['password']
         if check_pass(account, password, admin_list):
-            random_id = generate_random_string(40)
+            # random_id = generate_random_string(40)
+            session['random_pin'] = generate_random_string(40)
             session['logged_in'] = True
             session['accessed_dashboard'] = True
-            return redirect(url_for('final_check', account= 'admin', random_pin= random_id))
+            session['account'] = 'admin'
+            return redirect(url_for('final_check', account='admin', random_pin=session['random_pin']))
         elif check_pass(account, password, user_list):
-            random_id = generate_random_string(40)
+            # random_id = generate_random_string(40)
+            session['random_pin'] = generate_random_string(40)
             session['logged_in'] = True
             session['accessed_dashboard'] = True
             room_id = find_room_by_account(user_data,account)
-            return redirect(url_for('final_check', account= room_id, random_pin= random_id))
+            session['account'] = room_id
+            return redirect(url_for('final_check', account=room_id, random_pin=session['random_pin']))
         else:
             error = 'Invalid room-id or password. Please try again!'
     return render_template('login_page.html', error=error)
-
-@app.route(f'/<account>/<random_pin>', methods=['POST', 'GET'])
+@app.route('/<account>/<random_pin>', methods=['POST', 'GET'])
 def final_check(account, random_pin):
-    global random_id
-    if 'logged_in' in session and session.get('accessed_dashboard'):
-        session.pop('accessed_dashboard', None)
-        if account == "admin" and random_pin == random_id:
+    if session.get('logged_in') and session.get('random_pin') == random_pin:
+        if account == 'admin' and session.get('account') == 'admin':
             return render_template("admin_page.html")
-        if (account == "Room_1" or account == "Room_2"or account == "Room_3") and random_pin == random_id:
-            return render_template("user_page.html", room_id = account)
-    else:
-        return redirect(url_for('check_out'))
-# Press the green button in the gutter to run the script.
+        elif account in ["Room_1", "Room_2", "Room_3"] and session.get('account') == account:
+            return render_template("user_page.html", room_id=account)
+    return redirect(url_for('check_out'))
+@app.route('/firebase_data')
+def firebase_data():
+    ref = db.reference('/')
+    snapshot = ref.get()
+    if snapshot is None:
+        return jsonify({"error": "No data found"}), 404
+    return jsonify({
+        "Admin": snapshot.get("Admin", {}),
+        "User": snapshot.get("User", {})
+    })
+
 #---------------------------Set Access--------------------------
-@app.route('/set_pri_access', methods=['POST', 'GET'])
-def pri_access():
+@app.route('/<account>/<random_pin>/set_pri_access', methods=['POST', 'GET'])
+def set_pri_access(account, random_pin):
     if request.method == 'POST':
-        account = request.form['account']
+        account_new = request.form['account']
         accessType = request.form['room_id']
         password = request.form['password']
-        insertUser(accessType, account, password)
+        insertUser(accessType, account_new, password)
         return render_template("primary_access.html", success=True)
     return render_template("primary_access.html", success=False)
 
@@ -76,8 +85,8 @@ def pri_access():
 # @app.route('/delete_sec_access', methods=['POST', 'GET'])
 # def delete_sec():
 #     return render_template("delete_secondary_access.html")
-@app.route('/delete_pri_access', methods=['POST', 'GET'])
-def delete_pri():
+@app.route('/<account>/<random_pin>/delete_pri_access', methods=['POST', 'GET'])
+def delete_pri_access(account, random_pin):
     return render_template("delete_primary_access.html")
 #-----------------------Fetch Data-----------------------
 @app.route('/fetchData', methods=['GET'])
@@ -125,36 +134,43 @@ def get_data():
     except ValueError:
         return jsonify({"error": "Định dạng ngày không hợp lệ."})
     energy_data = get_energy_data(room_id, selected_date)
+    print(energy_data)
     # ======= 🔽 Giả lập dữ liệu bạn lấy từ Firebase hoặc cơ sở dữ liệu =======
     # Giả sử dữ liệu lưu dưới dạng: data_store[room_id][ngày][giờ] = { ... }
     hours = []
     energy = []
     total_energy = 0
+    streamData = get_stream_data("Room_1")
+    current = streamData['current']
+    power_factor = streamData['pf']
+    power = streamData['power']
+    voltage = streamData['voltage']
+    total_energy = update_monthly_energy(room_id, selected_date)
+    total_cost = round(total_energy * 3500, 2)  # 3500 VND/kWh
     try:
-        for i, item in enumerate(energy_data):
-            hour_label = f"{i:02d}:00"  # định dạng giờ như 00:00, 01:00...
-            e = float(item.get("Energy", 0))
+        for hour in sorted(energy_data.keys(), key=lambda x: int(x)):
+            hour_label = f"{int(hour):02d}:00"
+            e = float(energy_data[hour].get("Energy", 0))
             hours.append(hour_label)
             energy.append(e)
-            total_energy += e
+
     except:
         return jsonify({"error": "Không có dữ liệu trong ngày này",
                         "hours": [],
                         "energy": [],
-                        "total_energy": 0,
+                        "total_energy": round(total_energy, 2),
                         "total_cost": 0,
-                        "voltage": 0,
-                        "current": 0
                         })
-    total_cost = round(total_energy * 3500, 2)  # 3500 VND/kWh
 
     return jsonify({
         "hours": hours,
         "energy": energy,
         "total_energy": round(total_energy, 2),
         "total_cost": total_cost,
-        "voltage": None,  # Không có dữ liệu điện áp
-        "current": None  # Không có dữ liệu dòng điện
+        "voltage": voltage,  # Không có dữ liệu điện áp
+        "current": current,  # Không có dữ liệu dòng điện
+        "power": power,
+        "pf": power_factor
     })
 
 

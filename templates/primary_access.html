@@ -188,7 +188,7 @@ select {
         if (success === "True") {
             alert("Access granted successfully!");
             setTimeout(function() {
-                window.location.href = "/set_pri_access";
+                window.location.href = "{{ url_for('set_pri_access', account=session['account'], random_pin=session['random_pin']) }}";
             }, 500);
         }
     });

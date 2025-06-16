@@ -34,12 +34,20 @@
       <p id="totalCost">-- VND</p>
     </div>
     <div class="stat-box">
-      <h3>Điện áp TB</h3>
+      <h3>Điện áp</h3>
       <p id="avgVoltage">-- V</p>
     </div>
     <div class="stat-box">
-      <h3>Dòng điện TB</h3>
+      <h3>Dòng điện</h3>
       <p id="avgCurrent">-- A</p>
+    </div>
+    <div class="stat-box">
+      <h3>Công suất</h3>
+      <p id="avgPW">-- W</p>
+    </div>
+    <div class="stat-box">
+      <h3>Hệ số công suất</h3>
+      <p id="PF"></p>
     </div>
   </div>
   <p id="selectedDateDisplay"><strong>Ngày truy xuất:</strong> --</p>
@@ -73,6 +81,8 @@
   document.getElementById("totalCost").innerText = data.total_cost + " VND";
   document.getElementById("avgVoltage").innerText = data.voltage + " V";
   document.getElementById("avgCurrent").innerText = data.current + " A";
+  document.getElementById("avgPW").innerText = data.power + " W";
+  document.getElementById("PF").innerText = data.pf;
   console.log(data.energy);
   // 👉 Nếu không có dữ liệu, hiển thị thông báo và ẩn biểu đồ
   if (data.energy.length === 0) {
@@ -113,11 +123,13 @@
     }
 
     // ✅ Gán ngày hôm nay khi trang tải và tự động fetch dữ liệu
-    window.onload = function() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById("date").value = today;
-      loadChart();
-    };
+
+    window.onload = function () {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("date").value = today;
+    loadChart();
+    setInterval(loadChart, 5000);  // ⚠️ cập nhật mỗi 5 giây
+  };
   </script>
 
 </body>

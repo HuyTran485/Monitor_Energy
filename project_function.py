@@ -229,12 +229,52 @@ def find_room_by_account(data, account):
             return room_id
     return None
 def get_energy_data(room_id, date_index):
-    ref = db.reference(f'/Data/{room_id}/{date_index}')
+    day, month, year = date_index.split('-')
+    day = int(day)  # 25
+    month = int(month)
+    ref = db.reference(f'/Data/{room_id}/{year}/{month}/{day}')
     data = ref.get()
     return data
+def get_stream_data(room_id):
+    ref = db.reference(f'/StreamData/{room_id}')
+    data = ref.get()
+    return data
+def update_monthly_energy(room_id, date_index):
+    day, month, year = date_index.split('-')
+    day = int(day)
+    month = int(month)
+    path = f'Data/{room_id}/{year}/{month}'
+    ref = db.reference(path)
+    month_data = ref.get()
+    if not month_data:
+        print("Không có dữ liệu trong tháng.")
+        return
+
+    total_energy = 0
+    for day_key, day_data in month_data.items():
+        if day_key == "TotalEnergy":
+            continue  # Bỏ qua trường tổng
+        if not isinstance(day_data, dict):
+            print(f"Ngày {day_key} không phải dict, bỏ qua.")
+            continue
+        for hour, hour_data in day_data.items():
+            if not isinstance(hour_data, dict):
+                print(f"Giờ {hour} không phải dict, bỏ qua.")
+                continue
+            energy_str = hour_data.get("Energy", "0")
+            try:
+                total_energy += float(energy_str)
+            except ValueError:
+                print(f"Lỗi chuyển đổi giá trị năng lượng tại {day_key} {hour}")
+                pass
+
+    ref.child("TotalEnergy").set(str(total_energy))
+    return total_energy
+
 #index_data("Room_1","23-04-2025")
 #insertUser("Room_3","User7","123456")
 # print(showData("/User"))
+# print(update_monthly_energy("Room_1", "25-05-2025"))
 
 
 
