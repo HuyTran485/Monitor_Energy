@@ -139,23 +139,20 @@ def generate_random_string(length):
 
 
 #Index to phonenumber data
-def insertUser(userType, accountName, password):
-    now = datetime.now()
-    date_string = now.strftime("%d-%m-%Y")
-    time_string = now.strftime("%H-%M-%S")
+def insertAccount(userType, accountName, password):
     ref = db.reference('/')
     data = {
         'Password': f'{password}'
     }
     ref.child(f'{userType}').child(f'{accountName}').set(data)
 
-def showData(phoneNumber):
-    dataList =[]
-    points = 0
-    ref = db.reference(phoneNumber)
-    dataFirebase = ref.get()
-    #json_string = json.dumps(dataFirebase, indent=0)
-    return dataFirebase
+# def showData(phoneNumber):
+#     dataList =[]
+#     points = 0
+#     ref = db.reference(phoneNumber)
+#     dataFirebase = ref.get()
+#     #json_string = json.dumps(dataFirebase, indent=0)
+#     return dataFirebase
 #print(showData("0395228006"))
 import firebase_admin
 from firebase_admin import db, credentials
@@ -173,8 +170,11 @@ def showData(access_type):
     ref = db.reference(access_type)
     dataFirebase = ref.get()
     return dataFirebase
-def del_data(access_type,room_id, account):
+def del_user_data(access_type,room_id, account):
     ref = db.reference(f'{access_type}/{room_id}/{account}')
+    ref.delete()
+def del_admin_data(access_type, account):
+    ref = db.reference(f'{access_type}/{account}')
     ref.delete()
 def get_key_value(data):
     results={}
@@ -275,6 +275,6 @@ def update_monthly_energy(room_id, date_index):
 #insertUser("Room_3","User7","123456")
 # print(showData("/User"))
 # print(update_monthly_energy("Room_1", "25-05-2025"))
-
+# insertAccount("GrandAdmin", "bigboss", "777777")
 
 

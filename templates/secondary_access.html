@@ -1,3 +1,4 @@
+<!-- Updated HTML -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,29 +151,72 @@ select {
     border-radius: 5px;
     width:100px;
     height: 35px;
-    }
+}
 </style>
 </head>
 <body>
     <section>
         <form method="POST">
             <h1>GRANT ACCESS</h1>
-            <div class= "inputbox">
+
+            <!-- UserType dropdown -->
+            <div style="margin: 10px 0;">
+                <label style="color:white;">User Type:</label>
+                <select name="user_type" id="user_type">
+                    <option value="User">User</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="inputbox">
                 <ion-icon name="mail-outline"></ion-icon>
                 <input id="account" type="text" name="account" value = "{{request.form.account}}" required>
                 <label>USERNAME</label>
             </div>
+
             <div class="inputbox">
                 <ion-icon name="lock-closed-outline"></ion-icon>
                 <input id="password" type="password" name="password" value = "{{request.form.password}}" required>
-                <label >PASSWORD</label>
+                <label>PASSWORD</label>
             </div>
-            <select name="access_type" id="access_type">
-                <option value="Admin">Admin</option>
-                <option value="User">User</option>
-            </select>
+
+            <!-- Room ID block, only for Users -->
+            <div id="room_id_wrapper" style="margin-top: 20px;">
+                <label style="color:white;">Room ID:</label>
+                <select name="room_id" id="room_id">
+                    <option value="Room_1">Room 1</option>
+                    <option value="Room_2">Room 2</option>
+                    <option value="Room_3">Room 3</option>
+                </select>
+            </div>
+
             <button id="login-btn" style="margin-top:10%">SUBMIT</button>
         </form>
     </section>
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var success = "{{ success }}";
+        if (success === "True") {
+            alert("Access granted successfully!");
+            setTimeout(function() {
+                window.location.href = "{{ url_for('set_pri_access',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
+            }, 500);
+        }
+
+        const userTypeSelect = document.getElementById("user_type");
+        const roomIdWrapper = document.getElementById("room_id_wrapper");
+
+        function toggleRoomSelection() {
+            if (userTypeSelect.value === "User") {
+                roomIdWrapper.style.display = "block";
+            } else {
+                roomIdWrapper.style.display = "none";
+            }
+        }
+
+        userTypeSelect.addEventListener("change", toggleRoomSelection);
+        toggleRoomSelection(); // Initialize on load
+    });
+</script>
 </html>

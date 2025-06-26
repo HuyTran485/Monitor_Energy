@@ -6,22 +6,24 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial; padding: 20px; text-align:center}
-    .stats { display: flex; gap: 20px; margin-bottom: 20px; justify-content: space-between;}
+    .stats { display: flex; gap: 20px; margin-bottom: 20px; justify-content: space-between; flex-wrap: wrap; }
     .stat-box { background: #f2f2f2; padding: 15px; border-radius: 10px; width: 200px; text-align: center; }
     canvas { max-width: 100%; }
-    .controls { margin-bottom: 20px; }
+    .controls { margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
+    .controls button { padding: 10px 20px; font-size: 16px; }
   </style>
 </head>
 <body>
   <h1>Biểu đồ điện năng theo giờ</h1>
 
   <!-- Ẩn room_id để sử dụng trong JS -->
-  <input type="hidden" id="roomId" value="{{ room_id }}">
+  <input type="hidden" id="roomId" value="{{ authority }}">
+  <input type="hidden" id="account" value="{{ account }}">
+<input type="hidden" id="pin" value="{{ random_pin }}">
 
   <div class="controls">
-    <label for="date">Chọn ngày: </label>
-    <input type="date" id="date" />
-    <button onclick="loadChart()">Xem biểu đồ</button>
+    <button onclick="loadRangeChart()">Kiểm tra điện năng trong khoảng thời gian</button>
+    <button onclick="loadMonthlyChart()">Biểu đồ điện năng theo tháng (trong năm)</button>
   </div>
 
   <div class="stats">
@@ -54,83 +56,84 @@
 
   <canvas id="energyChart" height="100"></canvas>
 
-    <script>
-    let chart;
+<script>
+let chart;
+let alertShown = false; // <-- chỉ alert 1 lần
 
-    function loadChart() {
-      const date = document.getElementById("date").value;
-      const room_id = document.getElementById("roomId").value;
+function loadChart(date) {
+  const room_id = document.getElementById("roomId").value;
 
-      if (!date) return alert("Vui lòng chọn ngày!");
-      document.getElementById("selectedDateDisplay").innerHTML = `<strong>Ngày truy xuất:</strong> ${date}`;
+  fetch("/get_data", {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date, room_id })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("selectedDateDisplay").innerHTML = `<strong>Ngày truy xuất:</strong> ${date}`;
+    document.getElementById("totalEnergy").innerText = data.total_energy + " kWh";
+    document.getElementById("totalCost").innerText = data.total_cost + " VND";
+    document.getElementById("avgVoltage").innerText = data.voltage + " V";
+    document.getElementById("avgCurrent").innerText = data.current + " A";
+    document.getElementById("avgPW").innerText = data.power + " W";
+    document.getElementById("PF").innerText = data.pf;
 
-      fetch("/get_data", {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, room_id })
-      })
-      .then(res => res.json())
-      .then(data => {
+    if (data.energy.length === 0) {
+      if (chart) chart.destroy();
+      document.getElementById("energyChart").style.display = "none";
+      document.getElementById("selectedDateDisplay").innerHTML += `<br><em style="color:red;">Không có dữ liệu cho ngày này.</em>`;
 
+      if (!alertShown) {
+        alertShown = true;
+        alert(data.error);
+      }
+      return;
+    }
 
-  // 👉 Cập nhật ngày truy xuất
-  document.getElementById("selectedDateDisplay").innerHTML = `<strong>Ngày truy xuất:</strong> ${date}`;
-
-  // 👉 Cập nhật số liệu thống kê
-  document.getElementById("totalEnergy").innerText = data.total_energy + " kWh";
-  document.getElementById("totalCost").innerText = data.total_cost + " VND";
-  document.getElementById("avgVoltage").innerText = data.voltage + " V";
-  document.getElementById("avgCurrent").innerText = data.current + " A";
-  document.getElementById("avgPW").innerText = data.power + " W";
-  document.getElementById("PF").innerText = data.pf;
-  console.log(data.energy);
-  // 👉 Nếu không có dữ liệu, hiển thị thông báo và ẩn biểu đồ
-  if (data.energy.length === 0) {
+    alertShown = false; // reset nếu sau đó có dữ liệu trở lại
+    document.getElementById("energyChart").style.display = "block";
     if (chart) chart.destroy();
-    document.getElementById("energyChart").style.display = "none";
-    document.getElementById("selectedDateDisplay").innerHTML += `<br><em style="color:red;">Không có dữ liệu cho ngày này.</em>`;
-    return alert(data.error);;
-  }
-
-  // 👉 Nếu có dữ liệu, hiển thị biểu đồ
-  document.getElementById("energyChart").style.display = "block";
-
-  if (chart) chart.destroy();
-  chart = new Chart(document.getElementById('energyChart'), {
-    type: 'bar',
-    data: {
-      labels: data.hours,
-      datasets: [{
-        label: 'Điện năng (kWh)',
-        data: data.energy,
-        backgroundColor: 'rgba(54, 162, 235, 0.6)'
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: "kWh" }
-        },
-        x: {
-          title: { display: true, text: "Giờ" }
+    chart = new Chart(document.getElementById('energyChart'), {
+      type: 'bar',
+      data: {
+        labels: data.hours,
+        datasets: [{
+          label: 'Điện năng (kWh)',
+          data: data.energy,
+          backgroundColor: 'rgba(54, 162, 235, 0.6)'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "kWh" }
+          },
+          x: {
+            title: { display: true, text: "Giờ" }
+          }
         }
       }
-    }
+    });
   });
-});
-    }
+}
 
-    // ✅ Gán ngày hôm nay khi trang tải và tự động fetch dữ liệu
+function loadRangeChart() {
+   window.location.href =   "{{ url_for('get_data_range', authority=session['authority'] ,account=session['account'], random_pin=session['random_pin']) }}";
+}
 
-    window.onload = function () {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("date").value = today;
-    loadChart();
-    setInterval(loadChart, 5000);  // ⚠️ cập nhật mỗi 5 giây
-  };
-  </script>
+function loadMonthlyChart() {
+  window.location.href =   "{{ url_for('chart_monthly', authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
+}
+
+window.onload = function () {
+  const today = new Date().toISOString().split('T')[0];
+  loadChart(today);
+  setInterval(() => loadChart(today), 5000);
+};
+</script>
+
 
 </body>
 </html>

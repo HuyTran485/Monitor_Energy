@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Biểu đồ điện năng theo tháng</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 30px;
+      text-align: center;
+      background: #f4f4f4;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .year-selector {
+      margin-bottom: 30px;
+      padding: 20px;
+      display: inline-block;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .year-selector label {
+      font-size: 18px;
+      margin-right: 10px;
+    }
+    .year-selector select {
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    canvas {
+      height: 500px !important;
+      max-width: 80%;
+      width: 100%;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Biểu đồ điện năng theo tháng</h1>
+  <input type="hidden" id="authority" value="{{ authority }}">
+
+  <div class="year-selector">
+    <label for="yearSelect">Chọn năm:</label>
+    <select id="yearSelect" onchange="loadMonthlyEnergy()"></select>
+  </div>
+
+  <canvas id="monthlyChart" height="150"></canvas>
+
+<script>
+  let chart;
+
+  window.onload = () => {
+    const currentYear = new Date().getFullYear();
+    const select = document.getElementById("yearSelect");
+    for (let y = currentYear; y >= currentYear - 3; y--) {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.innerText = y;
+      select.appendChild(opt);
+    }
+    loadMonthlyEnergy();
+  };
+
+  function loadMonthlyEnergy() {
+    const authority = document.getElementById("authority").value;
+    const year = document.getElementById("yearSelect").value;
+
+    fetch(`/get_monthly_energy`, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ authority, year })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (chart) chart.destroy();
+
+      chart = new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+          labels: [...Array(12).keys()].map(i => `Tháng ${i+1}`),
+          datasets: [{
+            label: 'Tổng điện năng tiêu thụ (kWh)',
+            data: data.monthly_energy,
+            backgroundColor: 'rgba(255, 99, 132, 0.6)'
+          }]
+        },
+        options: {
+        maintainAspectRatio: false,
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'kWh' }
+            },
+            x: {
+              title: { display: true, text: 'Tháng' }
+            }
+          }
+        }
+      });
+    });
+  }
+</script>
+</body>
+</html>

@@ -4,6 +4,8 @@ import json
 import os
 import threading
 from project_function import *
+from datetime import datetime, timedelta
+#--------------------------Declare variables-------------------
 app = Flask(__name__)
 app.secret_key = 'super secret key'
 pri_data = ""
@@ -16,8 +18,10 @@ def ipadd():
     hostname=socket.gethostname()
     IPAddr=socket.gethostbyname(hostname)
     return IPAddr
+#---------------------------Login page--------------------
 @app.route('/', methods=['POST', 'GET'])
 def check_out():
+    grand_admin_list = get_key_value(showData("/GrandAdmin"))
     admin_list = get_key_value(showData("/Admin"))
     user_data = showData("/User")
     user_list = get_key_value_1(user_data)
@@ -30,26 +34,43 @@ def check_out():
             session['random_pin'] = generate_random_string(40)
             session['logged_in'] = True
             session['accessed_dashboard'] = True
-            session['account'] = 'admin'
-            return redirect(url_for('final_check', account='admin', random_pin=session['random_pin']))
+            session['account'] = account
+            session['authority'] = "Admin"
+            return redirect(url_for('final_check', authority="Admin",account=session['account'],
+                                    random_pin=session['random_pin']))
         elif check_pass(account, password, user_list):
             # random_id = generate_random_string(40)
             session['random_pin'] = generate_random_string(40)
             session['logged_in'] = True
             session['accessed_dashboard'] = True
             room_id = find_room_by_account(user_data,account)
-            session['account'] = room_id
-            return redirect(url_for('final_check', account=room_id, random_pin=session['random_pin']))
+            session['account'] = account
+            session['authority'] = room_id
+            return redirect(url_for('final_check',authority=session['authority'],
+                                    account=session['account'], random_pin=session['random_pin']))
+        elif check_pass(account, password, grand_admin_list):
+            # random_id = generate_random_string(40)
+            session['random_pin'] = generate_random_string(40)
+            session['logged_in'] = True
+            session['accessed_dashboard'] = True
+            room_id = find_room_by_account(user_data, account)
+            session['account'] = account
+            session['authority'] = "GrandAdmin"
+            return redirect(url_for('final_check', authority="GrandAdmin",account=session['account'],
+                                    random_pin=session['random_pin']))
         else:
             error = 'Invalid room-id or password. Please try again!'
     return render_template('login_page.html', error=error)
-@app.route('/<account>/<random_pin>', methods=['POST', 'GET'])
-def final_check(account, random_pin):
+@app.route('/<authority>/<account>/<random_pin>', methods=['POST', 'GET'])
+def final_check(authority,account, random_pin):
     if session.get('logged_in') and session.get('random_pin') == random_pin:
-        if account == 'admin' and session.get('account') == 'admin':
+        if authority == 'Admin' and session.get('account') == account:
             return render_template("admin_page.html")
-        elif account in ["Room_1", "Room_2", "Room_3"] and session.get('account') == account:
-            return render_template("user_page.html", room_id=account)
+        elif authority == 'GrandAdmin' and session.get('account') == account:
+            return render_template("grand_admin_page.html")
+        elif authority in ["Room_1", "Room_2", "Room_3"] and session.get('account') == account:
+            return render_template("user_page.html", authority=session['authority'],
+                                    account=session['account'], random_pin=session['random_pin'] )
     return redirect(url_for('check_out'))
 @app.route('/firebase_data')
 def firebase_data():
@@ -63,8 +84,8 @@ def firebase_data():
     })
 
 #---------------------------Set Access--------------------------
-@app.route('/<account>/<random_pin>/set_pri_access', methods=['POST', 'GET'])
-def set_pri_access(account, random_pin):
+@app.route('/<authority>/<account>/<random_pin>/set_pri_access', methods=['POST', 'GET'])
+def set_pri_access(authority,account, random_pin):
     if request.method == 'POST':
         account_new = request.form['account']
         accessType = request.form['room_id']
@@ -73,21 +94,28 @@ def set_pri_access(account, random_pin):
         return render_template("primary_access.html", success=True)
     return render_template("primary_access.html", success=False)
 
-# @app.route('/set_sec_access', methods=['POST', 'GET'])
-# def grant_access():
-#     if request.method == 'POST':
-#         account = request.form['account']
-#         accessType= request.form['access_type']
-#         password = request.form['password']
-#         insertUser(accessType, account, password)
-#     return render_template("secondary_access.html")
-#-----------------------Delete Data---------------------
-# @app.route('/delete_sec_access', methods=['POST', 'GET'])
-# def delete_sec():
-#     return render_template("delete_secondary_access.html")
-@app.route('/<account>/<random_pin>/delete_pri_access', methods=['POST', 'GET'])
-def delete_pri_access(account, random_pin):
+@app.route('/<authority>/<account>/<random_pin>/set_secondary_access', methods=['POST', 'GET'])
+def set_secondary_access(authority,account, random_pin):
+    if request.method == 'POST':
+        if request.form['user_type'] == "User":
+            account_new = request.form['account']
+            accessType = request.form['room_id']
+            password = request.form['password']
+            insertUser(accessType, account_new, password)
+        else:
+            account_new = request.form['account']
+            accessType = request.form['user_type']
+            password = request.form['password']
+            insertAccount(accessType, account_new, password)
+        return render_template("secondary_access.html", success=True)
+    return render_template("secondary_access.html", success=False)
+#------------------------Delete account----------------------------------------
+@app.route('/<authority>/<account>/<random_pin>/delete_pri_access', methods=['POST', 'GET'])
+def delete_pri_access(authority,account, random_pin):
     return render_template("delete_primary_access.html")
+@app.route('/<authority>/<account>/<random_pin>/delete_secondary_access', methods=['POST', 'GET'])
+def delete_secondary_access(authority,account, random_pin):
+    return render_template("delete_secondary_access.html")
 #-----------------------Fetch Data-----------------------
 @app.route('/fetchData', methods=['GET'])
 def fetch_data():
@@ -98,27 +126,17 @@ def fetch_data():
 @app.route('/submitData', methods=['POST'])
 def submit_data():
     data = request.get_json()
-    category = data.get('category')
-    room = data.get('room')
     account = data.get('account')
-    # Gọi hàm xóa account cụ thể
-    del_data(category, room, account)
-    return jsonify({'status': 'success', 'category': category, 'room': room, 'account': account})
+    category = data.get('category')
+    if category == "User":
+        room = data.get('room')
+        del_user_data(category, room, account)
+        return jsonify({'status': 'success', 'category': category, 'room': room, 'account': account})
+    else:
+        del_admin_data(category, account)
+        return jsonify({'status': 'success', 'category': category, 'account': account})
 
-# @app.route('/fetchData1', methods=['GET'])
-# def fetch_data1():
-#     global sec_data, sec_category
-#     sec_category = request.args.get('category')
-#     sec_data = showData("")
-#     return jsonify(sec_data.get(sec_category, []))
-# @app.route('/submitData1', methods=['POST'])
-# def submit_data1():
-#     global sec_data, sec_category
-#     sec_data = request.get_json()
-#     sec_category = sec_data.get('category')
-#     selected_data = sec_data.get('dataList')
-#     del_data(sec_category, selected_data)
-#     return jsonify({'status': 'success', 'Jurisdiction': sec_category, 'Account': selected_data})
+
 #-------------------------------------TEST----------------------------------------------
 @app.route("/get_data", methods=["POST"])
 def get_data():
@@ -159,7 +177,11 @@ def get_data():
                         "hours": [],
                         "energy": [],
                         "total_energy": round(total_energy, 2),
-                        "total_cost": 0,
+                        "total_cost": round(total_energy * 3500, 2),
+                        "voltage": voltage,  # Không có dữ liệu điện áp
+                        "current": current,  # Không có dữ liệu dòng điện
+                        "power": power,
+                        "pf": power_factor
                         })
 
     return jsonify({
@@ -172,8 +194,83 @@ def get_data():
         "power": power,
         "pf": power_factor
     })
+@app.route('/fetch_data_range', methods=['POST', 'GET'])
+def fetch_data_range():
+    data = request.get_json()
+    authority = data.get("authority")
+    print(f"Rdata: {data}")
+    start_date = data.get("start_date")
+    end_date = data.get("end_date")
 
+    if not authority or not start_date or not end_date:
+        return jsonify({"error": "Thiếu dữ liệu đầu vào."}), 400
 
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        if start > end:
+            return jsonify({"error": "Ngày bắt đầu phải trước hoặc bằng ngày kết thúc."}), 400
+    except ValueError:
+        return jsonify({"error": "Định dạng ngày không hợp lệ."}), 400
+
+    total_energy = 0.0
+    current = start
+    while current <= end:
+        y, m, d = current.year, current.month, current.day
+        path = f"Data/{authority}/{y}/{m}/{d}"
+        ref = db.reference(path)
+        day_data = ref.get()
+
+        if day_data:
+            for hour, values in day_data.items():
+                try:
+                    e = float(values.get("Energy", 0))
+                    total_energy += e
+                except:
+                    continue
+        current += timedelta(days=1)
+
+    total_cost = round(total_energy * 3500, 2)
+
+    return jsonify({
+        "total_energy": round(total_energy, 2),
+        "total_cost": total_cost
+    })
+@app.route("/get_monthly_energy", methods=["POST"])
+def get_monthly_energy():
+    data = request.get_json()
+    authority = data.get("authority")
+    year = data.get("year")
+
+    if not authority or not year:
+        return jsonify({"error": "Thiếu authority hoặc năm."}), 400
+
+    monthly_energy = []
+    for month in range(1, 13):
+        path = f"Data/{authority}/{year}/{month}/TotalEnergy"
+        ref = db.reference(path)
+        value = ref.get()
+        try:
+            monthly_energy.append(float(value))
+        except:
+            monthly_energy.append(0.0)
+
+    return jsonify({ "monthly_energy": monthly_energy })
+
+@app.route('/<authority>/<account>/<random_pin>/get_data_range', methods=['POST', 'GET'])
+def get_data_range(authority, account, random_pin):
+    session['authority'] = authority
+    session['account'] = account
+    session['random_pin'] = random_pin
+    return render_template("range.html", authority=session['authority'],
+                                    account=session['account'], random_pin=session['random_pin'])
+@app.route('/<authority>/<account>/<random_pin>/chart_monthly', methods=['POST', 'GET'])
+def chart_monthly(authority, account, random_pin):
+    session['authority'] = authority
+    session['account'] = account
+    session['random_pin'] = random_pin
+    return render_template("chart_monthly.html", authority=session['authority'],
+                                    account=session['account'], random_pin=session['random_pin'])
 
 #-------------------------Run Main---------------------
 if __name__ == '__main__':
