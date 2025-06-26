@@ -200,7 +200,7 @@ select {
         if (success === "True") {
             alert("Access granted successfully!");
             setTimeout(function() {
-                window.location.href = "{{ url_for('set_pri_access',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
+                window.location.href = "{{ url_for('set_secondary_access',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
             }, 500);
         }
 

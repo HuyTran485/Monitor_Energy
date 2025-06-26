@@ -79,10 +79,18 @@ def firebase_data():
     if snapshot is None:
         return jsonify({"error": "No data found"}), 404
     return jsonify({
+        "User": snapshot.get("User", {})
+    })
+@app.route('/firebase_data_1')
+def firebase_data_1():
+    ref = db.reference('/')
+    snapshot = ref.get()
+    if snapshot is None:
+        return jsonify({"error": "No data found"}), 404
+    return jsonify({
         "Admin": snapshot.get("Admin", {}),
         "User": snapshot.get("User", {})
     })
-
 #---------------------------Set Access--------------------------
 @app.route('/<authority>/<account>/<random_pin>/set_pri_access', methods=['POST', 'GET'])
 def set_pri_access(authority,account, random_pin):

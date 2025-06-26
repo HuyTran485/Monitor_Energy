@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ADMIN PAGE</title>
+  <title>GRANDADMIN PAGE</title>
   <script src="https://kit.fontawesome.com/a7e9f794eb.js" crossorigin="anonymous"></script>
   <style>
     body, html {
@@ -120,7 +120,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>WELCOME ADMIN</h1>
+      <h1>WELCOME BIG BOSS</h1>
     </div>
     <div class="main">
       <div class="actions">
@@ -142,7 +142,7 @@
     }
 
     async function fetchFirebaseData() {
-      const response = await fetch('/firebase_data');
+      const response = await fetch('/firebase_data_1');
       const data = await response.json();
       renderFirebaseData(data);
     }

@@ -148,40 +148,45 @@
     }
 
     function createTreeNode(key, value) {
-      const wrapper = document.createElement('div');
-      const node = document.createElement('div');
-      node.className = 'tree-node';
-      const icon = document.createElement('span');
-      icon.className = 'icon';
-      const label = document.createElement('span');
+  const wrapper = document.createElement('div');
+  const node = document.createElement('div');
+  node.className = 'tree-node';
+  const icon = document.createElement('span');
+  icon.className = 'icon';
+  const label = document.createElement('span');
 
-      if (typeof value === 'object' && value !== null) {
-        label.textContent = `📁 ${key}`;
-        wrapper.classList.add('parent-node');
-        const childrenContainer = document.createElement('div');
-        childrenContainer.className = 'tree-children';
-        for (const childKey in value) {
-          const childNode = createTreeNode(childKey, value[childKey]);
-          childrenContainer.appendChild(childNode);
-        }
-        node.appendChild(icon);
-        node.appendChild(label);
-        wrapper.appendChild(node);
-        wrapper.appendChild(childrenContainer);
-        wrapper.addEventListener('click', function (e) {
-          e.stopPropagation();
-          wrapper.classList.toggle('expanded');
-        });
-      } else {
-        label.textContent = `🔑 ${key}: ${value}`;
-        icon.classList.add('leaf-icon');
-        node.classList.add('leaf-node');
-        node.appendChild(icon);
-        node.appendChild(label);
-        wrapper.appendChild(node);
-      }
-      return wrapper;
+  if (typeof value === 'object' && value !== null) {
+    label.textContent = `📁 ${key}`;
+    wrapper.classList.add('parent-node');
+    const childrenContainer = document.createElement('div');
+    childrenContainer.className = 'tree-children';
+    for (const childKey in value) {
+      const childNode = createTreeNode(childKey, value[childKey]);
+      childrenContainer.appendChild(childNode);
     }
+    node.appendChild(icon);
+    node.appendChild(label);
+    wrapper.appendChild(node);
+    wrapper.appendChild(childrenContainer);
+    wrapper.addEventListener('click', function (e) {
+      e.stopPropagation();
+      wrapper.classList.toggle('expanded');
+    });
+  } else {
+    // ⭐ Che giá trị nếu là mật khẩu
+    if (typeof value === 'string' && key.toLowerCase().includes('password')) {
+      value = '*'.repeat(value.length);
+    }
+    label.textContent = `🔑 ${key}: ${value}`;
+    icon.classList.add('leaf-icon');
+    node.classList.add('leaf-node');
+    node.appendChild(icon);
+    node.appendChild(label);
+    wrapper.appendChild(node);
+  }
+  return wrapper;
+}
+
 
     function renderFirebaseData(data) {
       const container = document.getElementById('firebase-users');
