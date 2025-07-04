@@ -24,6 +24,7 @@
   <div class="controls">
     <button onclick="loadRangeChart()">Kiểm tra điện năng trong khoảng thời gian</button>
     <button onclick="loadMonthlyChart()">Biểu đồ điện năng theo tháng (trong năm)</button>
+    <button onclick="logout()">Đăng xuất</button>
   </div>
 
   <div class="stats">
@@ -125,6 +126,9 @@ function loadRangeChart() {
 
 function loadMonthlyChart() {
   window.location.href =   "{{ url_for('chart_monthly', authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
+}
+function logout() {
+  window.location.href = "/logout";
 }
 
 window.onload = function () {

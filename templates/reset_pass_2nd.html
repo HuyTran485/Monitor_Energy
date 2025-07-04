@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RESET PASSWORD</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 60%;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-size: 1.5em;
+      display: block;
+      margin: 15px 0;
+    }
+
+    select {
+      font-size: 1.2em;
+      padding: 12px;
+      margin-bottom: 30px;
+      width: 100%;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+
+    button {
+      font-size: 1.5em;
+      padding: 12px 24px;
+      color: #fff;
+      background-color: #28a745;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <form id="resetForm">
+    <h1>RESET PASSWORD</h1>
+
+    <label for="category">Choose Jurisdiction:</label>
+    <select id="category" name="category" onchange="fetchData()">
+      <option value=""> </option>
+      <option value="User">User</option>
+      <option value="Admin">Admin</option>
+    </select>
+
+    <div id="roomSection">
+      <label for="dataList">Room List:</label>
+      <select id="dataList" name="dataList"></select>
+    </div>
+
+    <label for="accountList">Account List:</label>
+    <select id="accountList" name="accountList"></select>
+
+    <button type="button" onclick="submitForm()">RESET PASSWORD</button>
+  </form>
+
+  <script>
+    function fetchData() {
+      const category = document.getElementById('category').value;
+      const roomSection = document.getElementById('roomSection');
+      const dataList = document.getElementById('dataList');
+      const accountList = document.getElementById('accountList');
+
+      if (category === 'Admin') {
+        roomSection.style.display = 'none';
+        fetch(`/fetchData?category=${category}`)
+          .then(response => response.json())
+          .then(data => {
+            accountList.innerHTML = '';
+            Object.keys(data).forEach(account => {
+              const option = document.createElement('option');
+              option.value = account;
+              option.textContent = account;
+              accountList.appendChild(option);
+            });
+          })
+          .catch(error => console.error('Error fetching admin data:', error));
+      } else if (category === 'User') {
+        roomSection.style.display = 'block';
+        fetch(`/fetchData?category=${category}`)
+          .then(response => response.json())
+          .then(data => {
+            dataList.innerHTML = '';
+            accountList.innerHTML = '';
+
+            Object.keys(data).forEach(room => {
+              const option = document.createElement('option');
+              option.value = room;
+              option.textContent = room;
+              dataList.appendChild(option);
+            });
+
+            if (dataList.options.length > 0) {
+              dataList.selectedIndex = 0;
+              populateAccountList(data, dataList.value);
+            }
+
+            dataList.onchange = () => populateAccountList(data, dataList.value);
+          })
+          .catch(error => console.error('Error fetching user data:', error));
+      }
+    }
+
+    function populateAccountList(data, selectedRoom) {
+      const accountList = document.getElementById('accountList');
+      accountList.innerHTML = '';
+
+      const accounts = data[selectedRoom];
+      if (accounts) {
+        Object.keys(accounts).forEach(account => {
+          const option = document.createElement('option');
+          option.value = account;
+          option.textContent = account;
+          accountList.appendChild(option);
+        });
+      }
+    }
+
+    function submitForm() {
+      const category = document.getElementById('category').value;
+      const room = document.getElementById('dataList').value;
+      const account = document.getElementById('accountList').value;
+
+      const body = category === 'Admin' ?
+        { category, account } :
+        { category, room, account };
+
+      fetch('/resetPassword', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('PASSWORD RESET SUCCESSFULLY');
+        location.reload();
+      })
+      .catch(error => console.error('Error resetting password:', error));
+    }
+  </script>
+</body>
+</html>

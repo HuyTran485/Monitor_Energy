@@ -18,6 +18,11 @@ def ipadd():
     hostname=socket.gethostname()
     IPAddr=socket.gethostbyname(hostname)
     return IPAddr
+#---------------------------Log out function-----------
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('check_out'))
 #---------------------------Login page--------------------
 @app.route('/', methods=['POST', 'GET'])
 def check_out():
@@ -124,6 +129,9 @@ def delete_pri_access(authority,account, random_pin):
 @app.route('/<authority>/<account>/<random_pin>/delete_secondary_access', methods=['POST', 'GET'])
 def delete_secondary_access(authority,account, random_pin):
     return render_template("delete_secondary_access.html")
+@app.route('/<authority>/<account>/<random_pin>/reset_pass_2nd', methods=['POST', 'GET'])
+def reset_pass_2nd(authority,account, random_pin):
+    return render_template("reset_pass_2nd.html")
 #-----------------------Fetch Data-----------------------
 @app.route('/fetchData', methods=['GET'])
 def fetch_data():
@@ -143,7 +151,27 @@ def submit_data():
     else:
         del_admin_data(category, account)
         return jsonify({'status': 'success', 'category': category, 'account': account})
+@app.route('/resetPassword', methods=['POST'])
+def reset_password():
+    data = request.json
+    category = data.get('category')
+    account = data.get('account')
 
+    if category == 'Admin':
+        path = f'Admin/{account}'
+    elif category == 'User':
+        room = data.get('room')
+        path = f'User/{room}/{account}'
+    else:
+        return jsonify({'error': 'Invalid category'}), 400
+
+    # Firebase: cập nhật lại mật khẩu
+    ref = db.reference(path)
+    if ref.get() is None:
+        return jsonify({'error': 'Account not found'}), 404
+
+    ref.update({'Password': '000000'})
+    return jsonify({'status': 'success'})
 
 #-------------------------------------TEST----------------------------------------------
 @app.route("/get_data", methods=["POST"])

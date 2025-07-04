@@ -126,6 +126,7 @@
       <div class="actions">
         <button class="button button2" onclick="setPer()">SET PERMISSION</button>
         <button class="button button2" onclick="removePer()">REMOVE PERMISSION</button>
+        <button class="button button2" onclick="resetPass()">RESET PASSWORD</button>
       </div>
       <div class="tree-container">
         <h2>Firebase Data Tree</h2>
@@ -139,6 +140,9 @@
 }
     function removePer() {
     window.location.href = "{{ url_for('delete_secondary_access',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
+    }
+    function resetPass() {
+    window.location.href = "{{ url_for('reset_pass_2nd',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
     }
 
     async function fetchFirebaseData() {
@@ -173,12 +177,16 @@
           wrapper.classList.toggle('expanded');
         });
       } else {
+      // ⭐ Che giá trị nếu là mật khẩu
+    if (typeof value === 'string' && key.toLowerCase().includes('password')) {
+      value = '*'.repeat(value.length);
+    }
         label.textContent = `🔑 ${key}: ${value}`;
-        icon.classList.add('leaf-icon');
-        node.classList.add('leaf-node');
-        node.appendChild(icon);
-        node.appendChild(label);
-        wrapper.appendChild(node);
+    icon.classList.add('leaf-icon');
+    node.classList.add('leaf-node');
+    node.appendChild(icon);
+    node.appendChild(label);
+    wrapper.appendChild(node);
       }
       return wrapper;
     }

@@ -197,15 +197,15 @@ def check_pass(account, password, data):
 def insertEnergyData(room_id,hour, energy):
     ref = db.reference('/')
     now = datetime.now()
-    year = now.strftime("%Y")
-    month = now.strftime("%m")
-    date = now.strftime("%d")
+    year = str(now.year)
+    month = str(now.month)
+    date = str(now.day)
     #hour = now.strftime("%H")
     date_string = now.strftime("%d-%m-%Y")
     data = {
         "Energy": f'{energy}'
     }
-    (ref.child(f'Data').child(f'{room_id}').child(f'{date_string}').child(f'{hour}').set(data))
+    (ref.child(f'Data').child(f'{room_id}').child(f'{year}').child(f'{month}').child(f'{date}').child(f'{hour}').set(data))
 # for i in range(0,24):
 #     insertEnergyData("Room_1",i, random.randrange(0, 5,1))
 #     time.sleep(1)
@@ -249,7 +249,7 @@ def update_monthly_energy(room_id, date_index):
     if not month_data:
         print("Không có dữ liệu trong tháng.")
         return
-
+    print(month_data)
     total_energy = 0
     for day_key, day_data in month_data.items():
         if day_key == "TotalEnergy":
@@ -268,7 +268,7 @@ def update_monthly_energy(room_id, date_index):
                 print(f"Lỗi chuyển đổi giá trị năng lượng tại {day_key} {hour}")
                 pass
 
-    ref.child("TotalEnergy").set(str(total_energy))
+    ref.child("TotalEnergy").set(f"{total_energy:.2f}")
     return total_energy
 
 #index_data("Room_1","23-04-2025")
@@ -276,5 +276,7 @@ def update_monthly_energy(room_id, date_index):
 # print(showData("/User"))
 # print(update_monthly_energy("Room_1", "25-05-2025"))
 # insertAccount("GrandAdmin", "bigboss", "777777")
-
+# print(update_monthly_energy("Room_1","10-6-2025"))
+# print(update_monthly_energy("Room_1","10-7-2025"))
+# insertEnergyData("Room_1","4", "0.05")
 
