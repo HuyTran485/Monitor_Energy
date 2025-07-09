@@ -239,6 +239,17 @@ def get_stream_data(room_id):
     ref = db.reference(f'/StreamData/{room_id}')
     data = ref.get()
     return data
+def insert_stream_data(room_id):
+    ref = db.reference(f'/StreamData/{room_id}')
+    data = ref.get()
+    data = {
+        "current": "0.2",
+        'pf': "0.99",
+        "power": "44.5",
+        "voltage": "223,1"
+
+    }
+    (ref.set(data))
 def update_monthly_energy(room_id, date_index):
     day, month, year = date_index.split('-')
     day = int(day)
@@ -278,5 +289,5 @@ def update_monthly_energy(room_id, date_index):
 # insertAccount("GrandAdmin", "bigboss", "777777")
 # print(update_monthly_energy("Room_1","10-6-2025"))
 # print(update_monthly_energy("Room_1","10-7-2025"))
-# insertEnergyData("Room_1","4", "0.05")
-
+# insertEnergyData("Room_3","12", "0.07")
+# insert_stream_data("Room_3")

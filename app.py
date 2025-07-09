@@ -178,6 +178,7 @@ def reset_password():
 def get_data():
     data = request.get_json()
     room_id = data.get("room_id")
+    print(room_id)
     date = data.get("date")
     if not room_id or not date:
         return jsonify({"error": "Thiếu room_id hoặc ngày."})
@@ -194,7 +195,7 @@ def get_data():
     hours = []
     energy = []
     total_energy = 0
-    streamData = get_stream_data("Room_1")
+    streamData = get_stream_data(room_id)
     current = streamData['current']
     power_factor = streamData['pf']
     power = streamData['power']
