@@ -8,7 +8,6 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: sans-serif;
     }
     .container {
       width: 100vw;
@@ -19,12 +18,23 @@
       flex-direction: column;
     }
     .header {
-      background-color: #524a4a;
-      padding: 30px;
-      text-align: center;
-      color: white;
-      font-size: 36px;
-    }
+  background-color: #2c3e50;
+  padding: 30px;
+  text-align: center;
+  color: gold;
+  font-size: 40px;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.header::before {
+  font-size: 48px;
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
     .main {
       flex: 1;
       display: flex;
@@ -102,19 +112,18 @@
       border-radius: 12px;
     }
     .button2 {
-      background-color: white;
-      color: black;
-      border: 3px solid #008CBA;
-      font-weight: bold;
-      border-radius: 12px;
-      transition: 0.3s;
-      font-size: 20px;
-      padding: 20px 40px;
-    }
-    .button2:hover {
-      background-color: #008CBA;
-      color: white;
-    }
+  background: linear-gradient(to right, #FFD700, #FFA500);
+  color: black;
+  border: 2px solid #DAA520;
+  font-weight: bold;
+  font-size: 20px;
+  padding: 20px 40px;
+  transition: all 0.3s ease;
+}
+.button2:hover {
+  background-color: #FF8C00;
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -127,6 +136,7 @@
         <button class="button button2" onclick="setPer()">SET PERMISSION</button>
         <button class="button button2" onclick="removePer()">REMOVE PERMISSION</button>
         <button class="button button2" onclick="resetPass()">RESET PASSWORD</button>
+        <button class="button button2" onclick="logout()">LOG OUT</button>
       </div>
       <div class="tree-container">
         <h2>Firebase Data Tree</h2>
@@ -144,7 +154,9 @@
     function resetPass() {
     window.location.href = "{{ url_for('reset_pass_2nd',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
     }
-
+  function logout() {
+  window.location.href = "/logout";
+}
     async function fetchFirebaseData() {
       const response = await fetch('/firebase_data_1');
       const data = await response.json();

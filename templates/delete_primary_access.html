@@ -6,60 +6,69 @@
     <title>DELETE USER</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-        }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: url('/static/Image/remove_premision.jpg') no-repeat center center fixed;
+    background-size: cover;
+    backdrop-filter: blur(30px);
+}
 
-        form {
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            width: 60%; /* Điều chỉnh độ rộng của form */
-            max-width: 600px; /* Đặt giới hạn chiều rộng tối đa */
-        }
+form {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 40px;
+    text-align: center;
+    width: 60%;
+    max-width: 600px;
+    color: white;
+}
 
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 30px;
-        }
+h1, label {
+    color: white;
+}
 
-        label {
-            font-size: 1.5em;
-            display: block;
-            margin: 15px 0;
-        }
+label {
+    font-size: 1.4em;
+    margin: 15px 0;
+}
 
-        select {
-            font-size: 1.2em;
-            padding: 12px;
-            margin-bottom: 30px;
-            width: 100%;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
+select {
+    font-size: 1.1em;
+    padding: 12px;
+    margin-bottom: 25px;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
 
-        button {
-            font-size: 1.5em;
-            padding: 12px 24px;
-            color: #fff;
-            background-color: #007bff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+select option {
+    color: black;
+}
 
-        button:hover {
-            background-color: #0056b3;
-        }
+button {
+    font-size: 1.3em;
+    padding: 12px 24px;
+    color: white;
+    background: rgba(0, 123, 255, 0.6);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: rgba(0, 123, 255, 0.85);
+}
     </style>
 </head>
 <body>

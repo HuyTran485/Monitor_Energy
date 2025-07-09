@@ -5,16 +5,17 @@
   <title>Biểu đồ điện năng</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial; padding: 20px; text-align:center}
+    body { font-family: Arial; padding: 20px; text-align:center;background: url('/static/Image/24049.jpg') no-repeat center center fixed;}
     .stats { display: flex; gap: 20px; margin-bottom: 20px; justify-content: space-between; flex-wrap: wrap; }
     .stat-box { background: #f2f2f2; padding: 15px; border-radius: 10px; width: 200px; text-align: center; }
     canvas { max-width: 100%; }
     .controls { margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
     .controls button { padding: 10px 20px; font-size: 16px; }
+    .button {background: #f2f2f2; padding: 15px; border-radius: 10px; width: 200px; text-align: center;}
   </style>
 </head>
 <body>
-  <h1>Biểu đồ điện năng theo giờ</h1>
+  <h1>Biểu đồ điện năng theo giờ trong ngày</h1>
 
   <!-- Ẩn room_id để sử dụng trong JS -->
   <input type="hidden" id="roomId" value="{{ authority }}">
