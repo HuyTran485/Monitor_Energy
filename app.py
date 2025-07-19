@@ -308,6 +308,53 @@ def chart_monthly(authority, account, random_pin):
     session['random_pin'] = random_pin
     return render_template("chart_monthly.html", authority=session['authority'],
                                     account=session['account'], random_pin=session['random_pin'])
+#---------------------------Get daily energy
+@app.route('/<authority>/<account>/<random_pin>/chart_daily_energy', methods=['GET'])
+def chart_daily_energy(authority, account, random_pin):
+    session['authority'] = authority
+    session['account'] = account
+    session['random_pin'] = random_pin
+    return render_template("chart_daily_month.html", authority=authority,
+                           account=account, random_pin=random_pin)
+
+@app.route('/get_daily_energy_by_month', methods=['POST'])
+def get_daily_energy_by_month():
+    data = request.get_json()
+    room_id = data.get("room_id")
+    month = int(data.get("month"))
+    year = int(data.get("year"))
+
+    if not room_id or not month or not year:
+        return jsonify({"error": "Thiếu room_id, month hoặc year"}), 400
+
+    from calendar import monthrange
+    days_in_month = monthrange(year, month)[1]
+    daily_energy = []
+    labels = []
+
+    for day in range(1, days_in_month + 1):
+        path = f"Data/{room_id}/{year}/{month}/{day}"
+        ref = db.reference(path)
+        data_day = ref.get()
+        total = 0.0
+
+        if data_day:
+            for hour_data in data_day.values():
+                try:
+                    total += float(hour_data.get("Energy", 0))
+                except:
+                    continue
+
+        labels.append(str(day))
+        daily_energy.append(round(total, 2))
+
+    daily_cost = [round(e * 3500, 2) for e in daily_energy]
+
+    return jsonify({
+        "labels": labels,
+        "energy": daily_energy,
+        "cost": daily_cost
+    })
 
 #-------------------------Run Main---------------------
 if __name__ == '__main__':

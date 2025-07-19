@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê điện tháng</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>Thống kê tiền điện theo ngày trong tháng</h2>
+
+    <label>Tháng:
+        <select id="month">
+            {% for m in range(1, 13) %}
+            <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Năm:
+        <select id="year">
+            {% for y in range(2023, 2031) %}
+            <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <button onclick="fetchData()">Xem biểu đồ</button>
+
+    <canvas id="energyChart" width="800" height="400"></canvas>
+
+    <script>
+        let chart;
+        function fetchData() {
+            const month = document.getElementById("month").value;
+            const year = document.getElementById("year").value;
+
+            fetch("/get_daily_energy_by_month", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    room_id: "{{ authority }}",
+                    month: month,
+                    year: year
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (chart) chart.destroy();
+                chart = new Chart(document.getElementById("energyChart"), {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Tiền điện (VND)',
+                            data: data.cost,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
