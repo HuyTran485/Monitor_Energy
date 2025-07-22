@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Điện năng theo tháng</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; padding: 30px; text-align: center; background: #f8f8f8; background: url('/static/Image/24049.jpg') no-repeat center center fixed;}
+    h1 { margin-bottom: 30px; }
+    .form-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+    .form-container select { padding: 10px; font-size: 16px; }
+    .form-container button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    .stats { display: flex; justify-content: center; gap: 40px; margin-top: 30px; flex-wrap: wrap; }
+    .stat-box { background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; width: 220px; }
+    .stat-box h3 { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Thống kê điện năng theo tháng</h1>
+
+  <div class="form-container">
+    <label>Room ID:
+      <select id="roomId">
+        <option value="Room_1">Room_1</option>
+        <option value="Room_2">Room_2</option>
+        <option value="Room_3">Room_3</option>
+      </select>
+    </label>
+
+    <label>Chọn tháng:
+      <select id="monthPicker">
+        <option value="1">Tháng 1</option>
+        <option value="2">Tháng 2</option>
+        <option value="3">Tháng 3</option>
+        <option value="4">Tháng 4</option>
+        <option value="5">Tháng 5</option>
+        <option value="6">Tháng 6</option>
+        <option value="7">Tháng 7</option>
+        <option value="8">Tháng 8</option>
+        <option value="9">Tháng 9</option>
+        <option value="10">Tháng 10</option>
+        <option value="11">Tháng 11</option>
+        <option value="12">Tháng 12</option>
+      </select>
+    </label>
+
+    <button onclick="fetchMonthlyData()">Xem thống kê</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <h3>Điện năng tiêu thụ</h3>
+      <p id="monthlyTotalEnergy">-- kWh</p>
+    </div>
+    <div class="stat-box">
+      <h3>Tiền điện</h3>
+      <p id="monthlyTotalCost">-- VND</p>
+    </div>
+  </div>
+
+  <script>
+    function fetchMonthlyData() {
+      const roomId = document.getElementById("roomId").value;
+      const month = document.getElementById("monthPicker").value;
+
+      const currentYear = new Date().getFullYear();
+
+      fetch("/fetch_month_data", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ room_id: roomId, year: currentYear, month: month })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+
+        document.getElementById("monthlyTotalEnergy").innerText = data.total_energy + " kWh";
+        document.getElementById("monthlyTotalCost").innerText = data.total_cost + " VND";
+      })
+      .catch(err => {
+        alert("Lỗi khi lấy dữ liệu điện năng.");
+        console.error(err);
+      });
+    }
+  </script>
+
+</body>
+</html>

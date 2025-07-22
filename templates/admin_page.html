@@ -128,6 +128,7 @@
       <div class="actions">
         <button class="button button2" onclick="setPer()">SET PERMISSION</button>
         <button class="button button2" onclick="removePer()">REMOVE PERMISSION</button>
+        <button class="button button2" onclick="statisticsEnergy()">USER STATISTICS ENERGY</button>
         <button class="button button2" onclick="logout()">LOG OUT</button>
       </div>
       <div class="tree-container">
@@ -142,6 +143,9 @@
 }
     function removePer() {
     window.location.href = "{{ url_for('delete_pri_access',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
+    }
+    function statisticsEnergy() {
+    window.location.href = "{{ url_for('statistics_energy',authority=session['authority'], account=session['account'], random_pin=session['random_pin']) }}";
     }
 function logout() {
   window.location.href = "/logout";

@@ -132,6 +132,9 @@ def delete_secondary_access(authority,account, random_pin):
 @app.route('/<authority>/<account>/<random_pin>/reset_pass_2nd', methods=['POST', 'GET'])
 def reset_pass_2nd(authority,account, random_pin):
     return render_template("reset_pass_2nd.html")
+@app.route('/<authority>/<account>/<random_pin>/statistics_energy', methods=['POST', 'GET'])
+def statistics_energy(authority,account, random_pin):
+    return render_template("statisticsEnergy.html")
 #-----------------------Fetch Data-----------------------
 @app.route('/fetchData', methods=['GET'])
 def fetch_data():
@@ -172,6 +175,27 @@ def reset_password():
 
     ref.update({'Password': '000000'})
     return jsonify({'status': 'success'})
+@app.route('/fetch_month_data', methods=['POST'])
+def fetch_month_data():
+    data = request.get_json()
+    room_id = data.get("room_id")
+    year = data.get("year")
+    month = data.get("month")
+
+    path = f'Data/{room_id}/{year}/{int(month)}/TotalEnergy'
+    ref = db.reference(path)
+    energy_str = ref.get()
+
+    if energy_str is None:
+        return {"error": f"Không có dữ liệu cho {room_id} tháng {month}/{year}"}
+
+    energy = float(energy_str)
+    cost = int(energy * 3500)
+
+    return {
+        "total_energy": energy,
+        "total_cost": cost
+    }
 
 #-------------------------------------TEST----------------------------------------------
 @app.route("/get_data", methods=["POST"])
